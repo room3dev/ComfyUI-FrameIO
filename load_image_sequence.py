@@ -62,9 +62,15 @@ class BatchLoadImageSequence:
             raise RuntimeError("Image sequence empty - no images to load")
 
         from concurrent.futures import ThreadPoolExecutor
+        from comfy.utils import ProgressBar
+        
+        pbar = ProgressBar(len(image_paths))
+        imgs = []
         
         with ThreadPoolExecutor() as executor:
-            imgs = list(executor.map(load_image, image_paths))
+            for img in executor.map(load_image, image_paths):
+                imgs.append(img)
+                pbar.update(1)
             
         return (torch.cat(imgs, dim=0),)
 
