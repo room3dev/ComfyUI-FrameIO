@@ -10,8 +10,8 @@ def load_image(path: str) -> torch.Tensor:
     Shape: [1, H, W, 3], float32 0..1
     """
     img = Image.open(path).convert("RGB")
-    arr = np.array(img).astype(np.float32) / 255.0
-    return torch.from_numpy(arr)[None,]
+    # Optimize: Direct to tensor -> float conversion (avoids intermediate float64 numpy array)
+    return torch.from_numpy(np.array(img)).float().div_(255.0)[None,]
 
 
 class BatchLoadImageList:
