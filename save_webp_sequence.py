@@ -25,9 +25,9 @@ class BatchSaveImageSequenceWebP:
                     {"default": "./frame{:06d}.webp", "multiline": False},
                 ),
                 "start_index": ("INT", {"default": 0, "min": 0, "step": 1}),
-                "lossless": (("false", "true"), {"default": "false"}),
+                "lossless": (("false", "true"), {"default": "true"}),
                 "quality": ("INT", {"default": 95, "min": 1, "max": 100}),
-                "skip_identical": (("false", "true"), {"default": "true"}),
+                "skip_identical": (("false", "true"), {"default": "false"}),
                 "overwrite": (("true", "false"), {"default": "true"}),
             }
         }
