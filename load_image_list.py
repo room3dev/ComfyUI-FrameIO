@@ -58,11 +58,22 @@ class BatchLoadImageList:
         if not selected:
             raise RuntimeError("No frames selected after slicing")
 
+        from concurrent.futures import ThreadPoolExecutor
+        from comfy.utils import ProgressBar
+
+        pbar = ProgressBar(len(selected))
         imgs = []
-        for path in selected:
+        
+        # Helper to check existence before loading to keep logic intact
+        def load_worker(path):
             if not os.path.exists(path):
                 raise FileNotFoundError(f"Image does not exist: {path}")
-            imgs.append(load_image(path))
+            return load_image(path)
+
+        with ThreadPoolExecutor() as executor:
+            for img in executor.map(load_worker, selected):
+                imgs.append(img)
+                pbar.update(1)
 
         images = torch.cat(imgs, dim=0)
         return (images, len(selected))
