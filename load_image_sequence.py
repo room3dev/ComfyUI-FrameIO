@@ -14,7 +14,7 @@ def load_image(path: str) -> torch.Tensor:
     return torch.from_numpy(arr)[None,]
 
 
-class JWBatchLoadImageSequence:
+class BatchLoadImageSequence:
     CATEGORY = "FrameIO"
 
     @classmethod
@@ -66,7 +66,7 @@ class JWBatchLoadImageSequence:
 
 
 NODE_CLASS_MAPPINGS = {
-    "BatchLoadImageSequence": JWBatchLoadImageSequence
+    "BatchLoadImageSequence": BatchLoadImageSequence
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
