@@ -122,15 +122,12 @@ class BatchSaveImageSequenceWebP:
                 if skip_identical:
                     seen_hashes[h] = path
                 
-                # Update pbar immediately for "processed" tasks, 
-                # strictly speaking, we should update when future is done, 
-                # but for UX responsiveness it's often fine to update on submission 
-                # OR we iterate futures differently. 
-                # Let's simple update here as we 'processed' the decision to save.
-                pbar.update(1)
-            
             # Wait for all to finish ensuring files are properly closed
-            for f in futures:
+            # Update pbar as tasks complete
+            from concurrent.futures import as_completed
+            for f in as_completed(futures):
+                pbar.update(1)
+                # Check for exceptions
                 f.result()
 
         return (saved_paths,)
