@@ -61,7 +61,11 @@ class BatchLoadImageSequence:
         if len(image_paths) == 0:
             raise RuntimeError("Image sequence empty - no images to load")
 
-        imgs = [load_image(p) for p in image_paths]
+        from concurrent.futures import ThreadPoolExecutor
+        
+        with ThreadPoolExecutor() as executor:
+            imgs = list(executor.map(load_image, image_paths))
+            
         return (torch.cat(imgs, dim=0),)
 
 

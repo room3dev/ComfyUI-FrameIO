@@ -56,48 +56,82 @@ class BatchSaveImageSequenceWebP:
 
         pbar = ProgressBar(batch_size)
 
-        for i in range(batch_size):
-            index = start_index + i
+        # Prepare executor for async saving
+        from concurrent.futures import ThreadPoolExecutor
 
-            try:
-                path = path_pattern.format(index)
-            except KeyError:
-                path = path_pattern.format(i=index)
+        def save_worker(img_tensor, file_path, lossless_mode, quality_val, file_format):
+            # Convert tensor to numpy/PIL
+            img_np = img_tensor.clamp(0, 1).cpu().numpy()
+            img_np = (img_np * 255).astype(np.uint8)
+            pil_image = Image.fromarray(img_np, mode="RGB")
+            
+            # Save arguments
+            save_args = {"format": file_format, "method": 6}
+            if lossless_mode:
+                save_args["lossless"] = True
+            else:
+                save_args["lossless"] = False
+                save_args["quality"] = quality_val
+                
+            pil_image.save(file_path, **save_args)
 
-            os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+        # Using max_workers=None lets python decide based on cpu count, 
+        # but we might want to limit it to avoid too much memory usage/disk contention. 
+        # For now, let's stick to default or a reasonable number like 4-8? 
+        # Default is usually cpu_count + 4. Let's start with default.
+        with ThreadPoolExecutor() as executor:
+            futures = []
+            
+            for i in range(batch_size):
+                index = start_index + i
 
-            img = images[i]
+                try:
+                    path = path_pattern.format(index)
+                except KeyError:
+                    path = path_pattern.format(i=index)
 
-            if skip_identical:
-                h = image_tensor_hash(img)
-                if h in seen_hashes:
-                    saved_paths.append(seen_hashes[h])
+                os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+
+                img = images[i]
+
+                if skip_identical:
+                    h = image_tensor_hash(img)
+                    if h in seen_hashes:
+                        saved_paths.append(seen_hashes[h])
+                        pbar.update(1)
+                        continue
+
+                # Check overwrite before doing work
+                if os.path.exists(path) and not overwrite:
+                    saved_paths.append(path)
                     pbar.update(1)
                     continue
 
-            if os.path.exists(path) and not overwrite:
+                # Submit save task
+                future = executor.submit(
+                    save_worker, 
+                    img, 
+                    path, 
+                    lossless, 
+                    quality, 
+                    "WEBP"
+                )
+                futures.append(future)
+
                 saved_paths.append(path)
+                if skip_identical:
+                    seen_hashes[h] = path
+                
+                # Update pbar immediately for "processed" tasks, 
+                # strictly speaking, we should update when future is done, 
+                # but for UX responsiveness it's often fine to update on submission 
+                # OR we iterate futures differently. 
+                # Let's simple update here as we 'processed' the decision to save.
                 pbar.update(1)
-                continue
-
-            img = img.clamp(0, 1)
-            img = (img.cpu().numpy() * 255).astype(np.uint8)
-            pil_img = Image.fromarray(img, mode="RGB")
-
-            kwargs = {"format": "WEBP", "method": 6}
-            if lossless:
-                kwargs["lossless"] = True
-            else:
-                kwargs["lossless"] = False
-                kwargs["quality"] = quality
-
-            pil_img.save(path, **kwargs)
-
-            saved_paths.append(path)
-            if skip_identical:
-                seen_hashes[h] = path
-
-            pbar.update(1)
+            
+            # Wait for all to finish ensuring files are properly closed
+            for f in futures:
+                f.result()
 
         return (saved_paths,)
 

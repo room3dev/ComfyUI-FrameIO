@@ -23,6 +23,7 @@ ComfyUI-FrameIO focuses on **efficient frame storage, loading, and reuse** for l
 - Safe with duplicate paths (from deduplication)
 
 ### ⚡ Optimized for AI Video
+- **Multi-threaded IO** for high-speed saving & loading
 - Designed for **long sequences**
 - Works with WebP / PNG / JPG
 - Preserves exact frame ordering
