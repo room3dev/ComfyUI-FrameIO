@@ -31,7 +31,6 @@ class BatchLoadImageList:
         }
 
     RETURN_TYPES = ("IMAGE", "INT")
-    RETURN_NAMES = ("images", "frame_count")
     FUNCTION = "execute"
 
     def execute(

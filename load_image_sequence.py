@@ -32,7 +32,6 @@ class BatchLoadImageSequence:
         }
 
     RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("images",)
     FUNCTION = "execute"
 
     def execute(
