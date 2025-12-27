@@ -32,8 +32,8 @@ class BatchSaveImageSequenceWebP:
             }
         }
 
-    RETURN_TYPES = ("STRING_LIST",)
-    RETURN_NAMES = ("paths",)
+    RETURN_TYPES = ("STRING_LIST", "INT")
+    RETURN_NAMES = ("paths", "count")
     FUNCTION = "execute"
 
     def execute(
@@ -147,7 +147,7 @@ class BatchSaveImageSequenceWebP:
                 # Check for exceptions
                 f.result()
 
-        return (saved_paths,)
+        return (saved_paths, len(saved_paths))
 
 
 NODE_CLASS_MAPPINGS = {

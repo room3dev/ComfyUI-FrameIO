@@ -31,7 +31,7 @@ class BatchLoadImageSequence:
             }
         }
 
-    RETURN_TYPES = ("IMAGE",)
+    RETURN_TYPES = ("IMAGE", "INT")
     FUNCTION = "execute"
 
     def execute(
@@ -71,7 +71,7 @@ class BatchLoadImageSequence:
                 imgs.append(img)
                 pbar.update(1)
             
-        return (torch.cat(imgs, dim=0),)
+        return (torch.cat(imgs, dim=0), len(imgs))
 
 
 NODE_CLASS_MAPPINGS = {
