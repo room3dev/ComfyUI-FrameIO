@@ -58,6 +58,7 @@ class BatchSaveImageSequenceWebP:
 
         # Prepare executor for async saving
         from concurrent.futures import ThreadPoolExecutor
+        import folder_paths
 
         def save_worker(img_tensor, file_path, lossless_mode, quality_val, file_format):
             # Convert tensor to numpy/PIL
@@ -82,6 +83,9 @@ class BatchSaveImageSequenceWebP:
         with ThreadPoolExecutor() as executor:
             futures = []
             
+            # Security check: Get base output path
+            base_output_dir = os.path.abspath(folder_paths.get_output_directory())
+
             for i in range(batch_size):
                 index = start_index + i
 
@@ -89,8 +93,21 @@ class BatchSaveImageSequenceWebP:
                     path = path_pattern.format(index)
                 except KeyError:
                     path = path_pattern.format(i=index)
+                
+                # Resolve absolute path
+                abs_path = os.path.abspath(path)
 
-                os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+                # Check if path is within output directory
+                # commonpath raises ValueError if paths are on different drives (Windows)
+                try:
+                    common = os.path.commonpath([base_output_dir, abs_path])
+                    if common != base_output_dir:
+                         raise PermissionError(f"Security: Cannot write to {abs_path}. Must be inside {base_output_dir}")
+                except ValueError:
+                     # Different drives on Windows will assume violation
+                     raise PermissionError(f"Security: Cannot write to {abs_path}. Must be inside {base_output_dir}")
+
+                os.makedirs(os.path.dirname(abs_path) or ".", exist_ok=True)
 
                 img = images[i]
 
@@ -102,8 +119,8 @@ class BatchSaveImageSequenceWebP:
                         continue
 
                 # Check overwrite before doing work
-                if os.path.exists(path) and not overwrite:
-                    saved_paths.append(path)
+                if os.path.exists(abs_path) and not overwrite:
+                    saved_paths.append(abs_path)
                     pbar.update(1)
                     continue
 
@@ -111,7 +128,7 @@ class BatchSaveImageSequenceWebP:
                 future = executor.submit(
                     save_worker, 
                     img, 
-                    path, 
+                    abs_path, 
                     lossless, 
                     quality, 
                     "WEBP"
