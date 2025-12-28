@@ -21,6 +21,7 @@ ComfyUI-FrameIO focuses on **efficient frame storage, loading, and reuse** for l
 - **Frame range selector** (`start`, `end`, `step`)
 - **Auto-detect frame count** (set `frame_count=0`)
 - **Execution Trigger** node for flow control
+- **List Video Files** node to scan input directory
 - Safe with duplicate paths (from deduplication)
 
 ### ⚡ Optimized for AI Video
@@ -86,6 +87,8 @@ Load images directly from a `STRING_LIST`.
 - `images` (IMAGE)
 - `count` (INT)
 
+> This is the **recommended loader** when using frame deduplication.
+
 ---
 
 ### 🔹 List Video Files (Input Dir)
@@ -94,12 +97,12 @@ Scans your ComfyUI `input` folder for video files.
 **Inputs**
 - `subfolder` (STRING) - Subfolder within the input directory.
 - `filter` (STRING) - Wildcard filter (default `*`).
+- `load_cap` (INT) - Maximum number of files to return (default `100`, 0 for no limit).
+- `deep_search` (true / false) - Search subdirectories recursively (default `false`).
 
 **Outputs**
 - `paths` (STRING_LIST) - List of absolute paths.
 - `count` (INT) - Number of files found.
-
-> This is the **recommended loader** when using frame deduplication.
 
 ---
 
