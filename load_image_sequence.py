@@ -102,13 +102,20 @@ Loads a sequence of images from disk using a pattern.
 
 
 
+try:
+    from comfy.comfy_types.node_typing import IO
+except ImportError:
+    # Fallback for older ComfyUI versions
+    class IO:
+        ANY = "*"
+
 class BatchLoadImageSequenceWithTrigger(BatchLoadImageSequence):
     @classmethod
     def INPUT_TYPES(cls):
         inputs = BatchLoadImageSequence.INPUT_TYPES()
         # Move to optional but with forceInput to allow any connection
         inputs["optional"] = {
-            "trigger": ("*", {"forceInput": True}),  # Any type trigger
+            "trigger": (IO.ANY, {"forceInput": True}),  # Any type trigger
         }
         return inputs
 
