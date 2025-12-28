@@ -132,7 +132,7 @@ Perfect for re-encoding or post-processing sections.
 
 ```bash
 cd ComfyUI/custom_nodes
-git clone https://github.com/<yourname>/ComfyUI-FrameIO.git
+git clone https://github.com/room3dev/ComfyUI-FrameIO.git
 ````
 
 Restart ComfyUI.
@@ -142,19 +142,6 @@ Nodes will appear under:
 ```
 FrameIO
 ```
-
----
-
-## 🔮 Roadmap (Planned / Ideas)
-
-* FFmpeg encode node (no frame storage)
-* AVIF support
-* 10-bit video output
-* Keyframe detection
-* Frame cache / reuse
-* Timeline tools
-
-Contributions and suggestions welcome.
 
 ---
 
