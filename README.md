@@ -86,6 +86,19 @@ Load images directly from a `STRING_LIST`.
 - `images` (IMAGE)
 - `count` (INT)
 
+---
+
+### 🔹 List Video Files (Input Dir)
+Scans your ComfyUI `input` folder for video files.
+
+**Inputs**
+- `subfolder` (STRING) - Subfolder within the input directory.
+- `filter` (STRING) - Wildcard filter (default `*`).
+
+**Outputs**
+- `paths` (STRING_LIST) - List of absolute paths.
+- `count` (INT) - Number of files found.
+
 > This is the **recommended loader** when using frame deduplication.
 
 ---
