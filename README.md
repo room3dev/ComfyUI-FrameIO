@@ -19,15 +19,17 @@ ComfyUI-FrameIO focuses on **efficient frame storage, loading, and reuse** for l
 - Pattern-based frame loading
 - **STRING_LIST → IMAGE loader** (no filename guessing)
 - **Frame range selector** (`start`, `end`, `step`)
-- **Auto-detect frame count**
+- **Auto-detect frame count** (set `frame_count=0`)
+- **Execution Trigger** node for flow control
 - Safe with duplicate paths (from deduplication)
 
 ### ⚡ Optimized for AI Video
 - **Multi-threaded IO** for high-speed saving & loading
+- **Direct PyTorch normalization** (avoids slow CPU/NumPy conversions)
 - Designed for **long sequences**
 - Works with WebP / PNG / JPG
 - Preserves exact frame ordering
-- Compatible with FFmpeg / Video Combine nodes
+- **Security restricted** (saves only to ComfyUI output directory)
 
 ---
 
@@ -47,6 +49,7 @@ Save an image batch efficiently to disk.
 
 **Outputs**
 - `paths` (STRING_LIST)
+- `count` (INT)
 
 ---
 
@@ -54,13 +57,19 @@ Save an image batch efficiently to disk.
 Load images from disk using a filename pattern.
 
 **Inputs**
-- `path_pattern` (STRING)
+- `path_pattern` (STRING) - e.g., `./frame{:06d}.webp`
 - `start_index` (INT)
-- `frame_count` (INT)
+- `frame_count` (INT) - **Set to 0 to auto-detect all available frames**
 - `ignore_missing_images` (true / false)
 
 **Outputs**
 - `images` (IMAGE)
+- `count` (INT)
+
+---
+
+### 🔹 Batch Load Image Sequence (Trigger)
+Same as the standard sequence loader, but includes an `optional trigger` input. Useful for forcing ComfyUI to wait for a previous node (like a video render) to finish before loading.
 
 ---
 
@@ -75,7 +84,7 @@ Load images directly from a `STRING_LIST`.
 
 **Outputs**
 - `images` (IMAGE)
-- `frame_count` (INT)
+- `count` (INT)
 
 > This is the **recommended loader** when using frame deduplication.
 
