@@ -106,22 +106,32 @@ class BatchLoadImageSequenceWithTrigger(BatchLoadImageSequence):
     @classmethod
     def INPUT_TYPES(cls):
         inputs = BatchLoadImageSequence.INPUT_TYPES()
+        # Move to optional but with forceInput to allow any connection
         inputs["optional"] = {
-            "trigger": ("*", {}),  # Any type trigger
+            "trigger": ("*", {"forceInput": True}),  # Any type trigger
         }
         return inputs
 
     RETURN_TYPES = ("IMAGE", "INT")
     FUNCTION = "execute_with_trigger"
+    INPUT_IS_LIST = True
     
     DESCRIPTION = """
 Same as BatchLoadImageSequence but with an optional trigger input.
 - Connect any output to `trigger` to force this node to wait.
 - Useful for ensuring a process finishes before loading starts.
+- This node will NOT unroll (run multiple times) if the trigger is a list.
 """
 
     def execute_with_trigger(self, path_pattern, start_index, frame_count, ignore_missing_images, trigger=None):
-        return self.execute(path_pattern, start_index, frame_count, ignore_missing_images)
+        # When INPUT_IS_LIST is True, all inputs are passed as lists.
+        # We extract the single values from the standard inputs.
+        return self.execute(
+            path_pattern[0], 
+            start_index[0], 
+            frame_count[0], 
+            ignore_missing_images[0]
+        )
 
 
 NODE_CLASS_MAPPINGS = {
