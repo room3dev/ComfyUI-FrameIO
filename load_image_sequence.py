@@ -26,13 +26,20 @@ class BatchLoadImageSequence:
                     {"default": "./frame{:06d}.webp", "multiline": False},
                 ),
                 "start_index": ("INT", {"default": 0, "min": 0, "step": 1}),
-                "frame_count": ("INT", {"default": 16, "min": 1, "step": 1}),
+                "frame_count": ("INT", {"default": 16, "min": 0, "step": 1}),
                 "ignore_missing_images": (("false", "true"), {"default": "false"}),
             }
         }
 
     RETURN_TYPES = ("IMAGE", "INT")
     FUNCTION = "execute"
+    DESCRIPTION = """
+Loads a sequence of images from disk using a pattern.
+- Supports high-performance async loading.
+- Ideal for loading rendered sequences or datasets.
+- Use pattern like `frame{:06d}.webp` to match filenames.
+- Set `frame_count` to 0 to auto-detect all available frames (contiguous).
+"""
 
     def execute(
         self,
@@ -42,20 +49,40 @@ class BatchLoadImageSequence:
         ignore_missing_images: str,
     ):
         ignore_missing_images = ignore_missing_images == "true"
-
         image_paths = []
-        for i in range(start_index, start_index + frame_count):
-            try:
-                image_paths.append(path_pattern.format(i))
-            except KeyError:
-                image_paths.append(path_pattern.format(i=i))
 
-        if ignore_missing_images:
-            image_paths = [p for p in image_paths if os.path.exists(p)]
+        if frame_count == 0:
+            # Auto-detect mode: load all contiguous frames starting from start_index
+            i = start_index
+            while True:
+                try:
+                    p = path_pattern.format(i)
+                except KeyError:
+                    p = path_pattern.format(i=i)
+                
+                if not os.path.exists(p):
+                    break
+                    
+                image_paths.append(p)
+                i += 1
+                
+                # Safety break to avoid infinite loops if something weird happens (e.g. symlink loops? unlikely but good practice)
+                if len(image_paths) > 100000:
+                    break
         else:
-            for path in image_paths:
-                if not os.path.exists(path):
-                    raise FileNotFoundError(f"Image does not exist: {path}")
+            # Standard Fixed Count Mode
+            for i in range(start_index, start_index + frame_count):
+                try:
+                    image_paths.append(path_pattern.format(i))
+                except KeyError:
+                    image_paths.append(path_pattern.format(i=i))
+
+            if ignore_missing_images:
+                image_paths = [p for p in image_paths if os.path.exists(p)]
+            else:
+                for path in image_paths:
+                    if not os.path.exists(path):
+                        raise FileNotFoundError(f"Image does not exist: {path}")
 
         if len(image_paths) == 0:
             raise RuntimeError("Image sequence empty - no images to load")
@@ -74,10 +101,35 @@ class BatchLoadImageSequence:
         return (torch.cat(imgs, dim=0), len(imgs))
 
 
+
+class BatchLoadImageSequenceWithTrigger(BatchLoadImageSequence):
+    @classmethod
+    def INPUT_TYPES(cls):
+        inputs = BatchLoadImageSequence.INPUT_TYPES()
+        inputs["optional"] = {
+            "trigger": ("*", {}),  # Any type trigger
+        }
+        return inputs
+
+    RETURN_TYPES = ("IMAGE", "INT")
+    FUNCTION = "execute_with_trigger"
+    
+    DESCRIPTION = """
+Same as BatchLoadImageSequence but with an optional trigger input.
+- Connect any output to `trigger` to force this node to wait.
+- Useful for ensuring a process finishes before loading starts.
+"""
+
+    def execute_with_trigger(self, path_pattern, start_index, frame_count, ignore_missing_images, trigger=None):
+        return self.execute(path_pattern, start_index, frame_count, ignore_missing_images)
+
+
 NODE_CLASS_MAPPINGS = {
-    "BatchLoadImageSequence": BatchLoadImageSequence
+    "BatchLoadImageSequence": BatchLoadImageSequence,
+    "BatchLoadImageSequenceWithTrigger": BatchLoadImageSequenceWithTrigger,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "BatchLoadImageSequence": "Batch Load Image Sequence"
+    "BatchLoadImageSequence": "Batch Load Image Sequence",
+    "BatchLoadImageSequenceWithTrigger": "Batch Load Image Sequence (Trigger)",
 }

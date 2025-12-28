@@ -35,6 +35,13 @@ class BatchSaveImageSequenceWebP:
     RETURN_TYPES = ("STRING_LIST", "INT")
     RETURN_NAMES = ("paths", "count")
     FUNCTION = "execute"
+    DESCRIPTION = """
+Saves a batch of images as a WebP sequence.
+- Optimized for long sequences with async saving.
+- Supports lossy and lossless compression.
+- Can skip identical frames to save space.
+- Restricted to ComfyUI output directory for security.
+"""
 
     def execute(
         self,

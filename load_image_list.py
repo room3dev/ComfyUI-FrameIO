@@ -32,6 +32,12 @@ class BatchLoadImageList:
 
     RETURN_TYPES = ("IMAGE", "INT")
     FUNCTION = "execute"
+    DESCRIPTION = """
+Loads images from a provided list of paths.
+- Best used with `Batch Save Image Sequence` output.
+- Supports slicing (start, end, step) for partial loading.
+- Optimized with async loading and direct tensor conversion.
+"""
 
     def execute(
         self,
