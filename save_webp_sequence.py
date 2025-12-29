@@ -14,6 +14,7 @@ def image_tensor_hash(img: torch.Tensor) -> str:
 
 class BatchSaveImageSequenceWebP:
     CATEGORY = "FrameIO"
+    OUTPUT_NODE = True
 
     @classmethod
     def INPUT_TYPES(cls):
