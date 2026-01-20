@@ -1,5 +1,7 @@
 # ComfyUI-FrameIO
 
+![preview](preview.png)
+
 High-performance frame input/output nodes for **AI video pipelines** in ComfyUI.
 
 ComfyUI-FrameIO focuses on **efficient frame storage, loading, and reuse** for long video generation workflows, solving common problems like massive PNG sizes, duplicate frames, and fragile filename-based loading.
